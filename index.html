@@ -1,0 +1,171 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Pixel Code for https://overtracking.com/ -->
+    <script defer src="https://overtracking.com/p/p4gAlTJv4a7BUyVy"></script>
+    <!-- END Pixel Code -->
+</head>
+
+<body>
+    <div id="headerDivId">
+        <input type="text" placeholder="enter words to mute (comma separated)" id="muted-words-input">
+        <input type="text" placeholder="enter word to unmute" id="unmuted-words-input">
+    </div>
+    <div class="article-list-div" id="articleListDivId"></div>
+
+    <script>
+        let _500NewestStoriesDataVariable;
+        let articlesOnDisplay = [];
+        let filteredWords = [];
+
+        function adjustArticleListHeight() {
+            document.getElementById('articleListDivId').style.maxHeight =
+                window.innerHeight - document.getElementById('headerDivId').offsetHeight + 'px';
+        }
+
+        adjustArticleListHeight();
+        window.addEventListener('resize', adjustArticleListHeight);
+
+        // Get the filtered words from local storage
+        if (localStorage.getItem('filteredWords')) {
+            filteredWords = JSON.parse(localStorage.getItem('filteredWords'));
+            console.log('filtered words: ' + filteredWords);
+        }
+
+        function compareNumbers(a, b) {
+            return a - b;
+        }
+
+        // On page load, fetch new stories
+        window.onload = function () {
+            fetch(`https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty`)
+                .then(response => response.json())
+                .then(data => {
+                    _500NewestStoriesDataVariable = data;
+                    _500NewestStoriesDataVariable.forEach(storyID => {
+                        fetch(`https://hacker-news.firebaseio.com/v0/item/${storyID}.json?print`)
+                            .then(response => response.json())
+                            .then(data => {
+                                let articleDate = new Date(data.time * 1000);
+                                let articleURL = data.url;
+                                let articleId = data.id;
+                                let articleText = data.text || "";
+                                let articleKids = data.kids;
+
+                                const containsFilteredWord = filteredWords.some(word => {
+                                    const regex = new RegExp(`\\b${word.toLowerCase()}\\b`, 'i');
+                                    return (data.title && regex.test(data.title.toLowerCase())) || regex.test(articleText.toLowerCase());
+                                });
+
+                                if (containsFilteredWord) return;
+
+                                getKidsInformation(articleKids, articleId);
+                                articlesOnDisplay.push(articleId);
+                                let reversedArticlesOnDisplay = articlesOnDisplay.sort(compareNumbers);
+                                let articleIdIndex = reversedArticlesOnDisplay.indexOf(articleId);
+                                let nextArticleId = reversedArticlesOnDisplay[articleIdIndex + 1] || 0;
+
+                                if (document.querySelector(`[data-article-id='${nextArticleId}']`)) {
+                                    document.querySelector(`[data-article-id='${nextArticleId}']`).insertAdjacentHTML('afterend', `
+                <a data-article-id="${articleId}" href="${articleURL}">
+                    ${data.title}<br>
+                    <div class="time-div">${articleDate}</div>
+                    <div class="article-text-div">${articleText}</div>
+                </a>`);
+                                } else {
+                                    document.querySelector('.article-list-div').insertAdjacentHTML('beforeend', `
+                <a data-article-id="${articleId}" href="${articleURL}">
+                    ${data.title}<br>
+                    <div class="time-div">${articleDate}</div>
+                    <div class="article-text-div">${articleText}</div>
+                </a>`);
+                                }
+                            });
+                    });
+                });
+        };
+
+        async function getKidsInformation(articleKids, articleId) {
+            if (articleKids) {
+                articleKids.forEach(kid => {
+                    fetch(`https://hacker-news.firebaseio.com/v0/item/${kid}.json?print`)
+                        .then(response => response.json())
+                        .then(data => {
+                            let commentText = data.text;
+                            let commentId = data.id;
+                            let commentDeleted = data.deleted;
+                            let commentDead = data.dead;
+
+                            if (!commentDeleted && !commentDead) {
+                                document.querySelector(`[data-article-id='${articleId}']`).insertAdjacentHTML('beforeend',
+                                    `<div class="comment-container-div"><br><div class="comment-div" data-comment-id="${commentId}">${commentText}</div><br></div>`);
+                            }
+                        });
+                });
+            }
+        }
+
+        function clearFilteredWords() {
+            console.log(`clearing filtered words: ${filteredWords}`);
+            filteredWords = [];
+            localStorage.setItem('filteredWords', JSON.stringify(filteredWords));
+        }
+
+        console.log(`to clear filtered words, call clearFilteredWords()`);
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                if (event.target.id === 'muted-words-input') {
+                    const input = event.target.value.trim();
+                    const wordsToMute = input.split(',').map(word => word.trim()).filter(word => word !== '');
+
+                    event.target.blur();
+
+                    wordsToMute.forEach(word => {
+                        if (!filteredWords.includes(word)) {
+                            filteredWords.push(word);
+                        }
+                    });
+
+                    console.log('filtered words: ' + filteredWords);
+                    localStorage.setItem('filteredWords', JSON.stringify(filteredWords));
+                    event.target.value = '';
+
+                    removeMutedArticles();
+                }
+
+                if (event.target.id === 'unmuted-words-input') {
+                    const word = event.target.value.trim();
+
+                    if (filteredWords.includes(word)) {
+                        filteredWords = filteredWords.filter(w => w !== word);
+                        console.log('filtered words: ' + filteredWords);
+                        localStorage.setItem('filteredWords', JSON.stringify(filteredWords));
+                        event.target.value = '';
+                        event.target.blur();
+                    }
+                }
+            }
+        });
+
+        function removeMutedArticles() {
+            const articles = document.querySelectorAll('.article-list-div a');
+            articles.forEach(article => {
+                const title = article.textContent.toLowerCase();
+                const text = article.querySelector('.article-text-div')?.textContent.toLowerCase() || '';
+
+                const containsMutedWord = filteredWords.some(word => {
+                    const regex = new RegExp(`\\b${word.toLowerCase()}\\b`, 'i');
+                    return regex.test(title) || regex.test(text);
+                });
+
+                if (containsMutedWord) {
+                    article.remove();
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
