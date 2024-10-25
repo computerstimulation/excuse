@@ -88,6 +88,8 @@ input {
 
 .article-text-div {
     font-size: 0.9rem;
+    width: 90%;
+    margin: auto;
 }
 
 .article-text-div * {
@@ -95,14 +97,14 @@ input {
 }
 
 .comment-container-div {
-    display: inline;
+    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
 
 .comment-div {
-    display: inline;
+    width: 80%;
     font-size: 0.8rem;
     color: green;
     overflow: hidden;
