@@ -83,6 +83,7 @@ input {
 
 .time-div {
     font-size: 0.5rem;
+    display: inline;
 }
 
 .article-text-div {
