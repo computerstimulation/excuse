@@ -39,52 +39,50 @@
 
         // On page load, fetch new stories
         window.onload = function () {
-            fetch(`https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty`)
-                .then(response => response.json())
-                .then(data => {
-                    _500NewestStoriesDataVariable = data;
-                    _500NewestStoriesDataVariable.forEach(storyID => {
-                        fetch(`https://hacker-news.firebaseio.com/v0/item/${storyID}.json?print`)
-                            .then(response => response.json())
-                            .then(data => {
-                                let articleDate = new Date(data.time * 1000);
-                                let articleURL = data.url;
-                                let articleId = data.id;
-                                let articleText = data.text || "";
-                                let articleKids = data.kids;
+    fetch(`https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty`)
+        .then(response => response.json())
+        .then(data => {
+            _500NewestStoriesDataVariable = data;
+            _500NewestStoriesDataVariable.forEach(storyID => {
+                fetch(`https://hacker-news.firebaseio.com/v0/item/${storyID}.json?print`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let articleDate = new Date(data.time * 1000);
+                        let articleURL = data.url || `https://news.ycombinator.com/item?id=${data.id}`;
+                        let articleId = data.id;
+                        let articleText = data.text || "";
+                        let articleKids = data.kids;
 
-                                const containsFilteredWord = filteredWords.some(word => {
-                                    const regex = new RegExp(`\\b${word.toLowerCase()}\\b`, 'i');
-                                    return (data.title && regex.test(data.title.toLowerCase())) || regex.test(articleText.toLowerCase());
-                                });
+                        const containsFilteredWord = filteredWords.some(word => {
+                            const regex = new RegExp(`\\b${word.toLowerCase()}\\b`, 'i');
+                            return (data.title && regex.test(data.title.toLowerCase())) || regex.test(articleText.toLowerCase());
+                        });
 
-                                if (containsFilteredWord) return;
+                        if (containsFilteredWord) return;
 
-                                getKidsInformation(articleKids, articleId);
-                                articlesOnDisplay.push(articleId);
-                                let reversedArticlesOnDisplay = articlesOnDisplay.sort(compareNumbers);
-                                let articleIdIndex = reversedArticlesOnDisplay.indexOf(articleId);
-                                let nextArticleId = reversedArticlesOnDisplay[articleIdIndex + 1] || 0;
+                        getKidsInformation(articleKids, articleId);
+                        articlesOnDisplay.push(articleId);
+                        let reversedArticlesOnDisplay = articlesOnDisplay.sort(compareNumbers);
+                        let articleIdIndex = reversedArticlesOnDisplay.indexOf(articleId);
+                        let nextArticleId = reversedArticlesOnDisplay[articleIdIndex + 1] || 0;
 
-                                if (document.querySelector(`[data-article-id='${nextArticleId}']`)) {
-                                    document.querySelector(`[data-article-id='${nextArticleId}']`).insertAdjacentHTML('afterend', `
-                <a data-article-id="${articleId}" href="${articleURL}">
-                    ${data.title}<br>
-                    <div class="time-div">${articleDate}</div>
-                    <div class="article-text-div">${articleText}</div>
-                </a>`);
-                                } else {
-                                    document.querySelector('.article-list-div').insertAdjacentHTML('beforeend', `
-                <a data-article-id="${articleId}" href="${articleURL}">
-                    ${data.title}<br>
-                    <div class="time-div">${articleDate}</div>
-                    <div class="article-text-div">${articleText}</div>
-                </a>`);
-                                }
-                            });
+                        const articleHTML = `
+                            <a data-article-id="${articleId}" href="${articleURL}">
+                                ${data.title}<br>
+                                <div class="time-div">${articleDate}</div>
+                                <div class="article-text-div">${articleText}</div>
+                            </a>`;
+
+                        if (document.querySelector(`[data-article-id='${nextArticleId}']`)) {
+                            document.querySelector(`[data-article-id='${nextArticleId}']`).insertAdjacentHTML('afterend', articleHTML);
+                        } else {
+                            document.querySelector('.article-list-div').insertAdjacentHTML('beforeend', articleHTML);
+                        }
                     });
-                });
-        };
+            });
+        });
+};
+
 
         async function getKidsInformation(articleKids, articleId) {
             if (articleKids) {
