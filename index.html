@@ -83,7 +83,6 @@
         });
 };
 
-
         async function getKidsInformation(articleKids, articleId) {
             if (articleKids) {
                 articleKids.forEach(kid => {
@@ -97,7 +96,7 @@
 
                             if (!commentDeleted && !commentDead) {
                                 document.querySelector(`[data-article-id='${articleId}']`).insertAdjacentHTML('beforeend',
-                                    `<div class="comment-container-div"><br><div class="comment-div" data-comment-id="${commentId}">${commentText}</div><br><br></div>`);
+                                    `<div class="comment-container-div"><a href= https://news.ycombinator.com/item?id=${commentId}><br><div class="comment-div" data-comment-id="${commentId}">${commentText}</div><br><br></a></div>`);
                             }
                         });
                 });

@@ -108,6 +108,7 @@ input {
     font-size: 0.8rem;
     color: green;
     overflow: hidden;
+    margin: auto;
 }
 
 .comment-div * {
