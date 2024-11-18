@@ -83,16 +83,22 @@ input {
 
 .time-div {
     font-size: 0.5rem;
+    display: inline;
 }
 
 .article-text-div {
     font-size: 0.9rem;
-    width: 90%;
+    max-width: 90%;
     margin: auto;
+    display: inline;
+    text-align: center;
 }
 
 .article-text-div * {
     font-size: 0.9rem;
+    max-width: 90%;
+    margin: 0 auto;
+    display: inline-block;
 }
 
 .comment-container-div {

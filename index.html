@@ -67,11 +67,11 @@
                         let nextArticleId = reversedArticlesOnDisplay[articleIdIndex + 1] || 0;
 
                         const articleHTML = `
-                            <a data-article-id="${articleId}" href="${articleURL}">
+                            <div><a data-article-id="${articleId}" href="${articleURL}">
                                 ${data.title}<br>
-                                <div class="time-div">${articleDate}</div>
+                                <div class="time-div">${articleDate}</div><br>
                                 <div class="article-text-div">${articleText}</div>
-                            </a>`;
+                            </a></div>`;
 
                         if (document.querySelector(`[data-article-id='${nextArticleId}']`)) {
                             document.querySelector(`[data-article-id='${nextArticleId}']`).insertAdjacentHTML('afterend', articleHTML);
